@@ -1,18 +1,16 @@
 apiVersion: extensions.istio.io/v1alpha1
 kind: WasmPlugin
 metadata:
-  name: openapi-path-filter
+  name: baggage-filter
   namespace: cluster
 spec:
   selector:
     matchLabels:
       app: gateway
-  url: docker-registry.anyflow.net/openapi-path-filter:0.1.7
+  url: docker-registry.anyflow.net/baggage-filter:0.1.0
   imagePullPolicy: Always
-  phase: AUTHN # 실행 단계 설정 - Istio 트레이싱 필터보다 앞서 실행되도록
-  priority: 10 # 같은 phase 내에서의 우선순위 (높을수록 먼저 실행)
+  phase: UNSPECIFIED_PHASE # filter chain 맨 뒤에 위치(router filter 직전)
+  priority: 9
   pluginConfig:
-    paths:
-      /dockebi/v1/stuff: {}
-      /dockebi/v1/stuff/{id_}: {}
-      /dockebi/v1/stuff/{id_}/child/{child_id}/hello: {}
+    headers:
+      - "x-message-id"
