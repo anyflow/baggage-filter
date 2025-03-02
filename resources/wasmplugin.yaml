@@ -1,0 +1,17 @@
+apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: baggage-filter
+  namespace: cluster
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+  url: docker-registry.anyflow.net/baggage-filter:0.1.1
+  imagePullPolicy: Always
+  phase: UNSPECIFIED_PHASE # filter chain 맨 뒤에 위치(router filter 직전)
+  priority: 9
+  failStrategy: FAIL_OPEN # fatal error 경우 이 wasm을 bypass하도록
+  pluginConfig:
+    headers:
+      - "x-message-id"
