@@ -7,11 +7,11 @@ spec:
   selector:
     matchLabels:
       app: gateway
-  url: docker-registry.anyflow.net/baggage-filter:0.1.1
+  url: docker-registry.anyflow.net/baggage-filter:0.1.2
   imagePullPolicy: Always
-  phase: UNSPECIFIED_PHASE # filter chain 맨 뒤에 위치(router filter 직전)
-  priority: 9
-  failStrategy: FAIL_OPEN # fatal error 경우 이 wasm을 bypass하도록
+  phase: STATS
+  failStrategy: FAIL_OPEN
+  #  priority: 9
   pluginConfig:
     headers:
-      - "x-message-id"
+      - "header-to-add-in-baggage"

@@ -12,12 +12,8 @@ spec:
     - providers:
         - name: otelTrace
       randomSamplingPercentage: 100
-      customTags: # 지정된 header를 항상 span에 추가
+      customTags:
         baggage:
           header:
             name: baggage
-            defaultValue: "-"
-        x-message-id:
-          header:
-            name: x-message-id
             defaultValue: "-"

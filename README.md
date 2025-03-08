@@ -1,21 +1,50 @@
-# baggage-filter
+# `baggage-filter`
 
 ## Introduction
 
-A Rust-based Istio WASM filter that create the `baggage` header which has header key and value pairs designated by configuration. `baggage` header is the one of W3C trace context.
+A Rust-based Istio WASM filter that generates a W3C Trace Context-compliant `baggage` header, containing key-value pairs specified by the configuration.
+
+## Features
+
+- Adds the headers specified in the config as items in the `baggage` header. If the header does not exist, create it. If it already exists, overwrite the value of keys with the same name while retaining the other items. Refer to [`./resources/wasmplugin.yaml`](./resources/wasmplugin.yaml).
 
 ## Getting started
 
 ```shell
-# Rust 설치. 참고로 macOS에서 brew로 설치하면 정상 compile안됨. 따라서 Rust 공식 설치 Path를 따라야.
+# Install Rust. Note: Installing via brew on macOS may not compile correctly. Follow the official Rust installation path instead.
 > curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# cargo-make 설치 (빌드 도구. Makefile.toml 참고)
+# Install cargo-make (build tool; refer to Makefile.toml).
 > cargo install cargo-make
 
-# wasm-opt (bynaryen) 설치 (macOS의 경우. 타 OS의 경우 별도 방법 필요. 설치 안될 경우 Makefile.toml의 optimize-wasm task 제거로 본 step skip 가능)
+# Install wasm-opt (binaryen) (for macOS; other OSes require a different method. If installation fails, skip this step by removing the optimize-wasm task from Makefile.toml).
 > brew install binaryen
 
-# test -> rust build -> image optimization -> docker build -> docker push
-> cargo make clean-all
+# Create a .env file at the root and set DOCKER_IMAGE_PATH. Example below:
+DOCKER_IMAGE_PATH=anyflow/baggage-filter
+
+# Run tests -> Rust build -> Image optimization -> Docker build -> Docker push
+> cargo make deploy
 ```
+
+## How to Test at Runtime in Istio
+
+```shell
+# Change the WASM log level of the target pod to debug.
+> istioctl pc log -n <namespace name> <pod name> --level wasm:debug
+
+# Filter logs to show only baggage-filter
+> k logs -n <namespace name> <pod name> -f | grep -F '[bf]'
+
+# Apply resources/telemetry.yaml: To add baggage header in the trace tag.
+> kubectl apply -f telemetry.yaml
+
+# Apply resources/wasmplugin.yaml: Check logs to confirm successful loading, e.g., "[bf] Configuration successful, configured headers:".
+> kubectl apply -f wasmplugin.yaml
+
+# Make a curl request and verify if the matching success log appears, e.g., "[bf] Set new baggage: x-message-id=0123456789".
+```
+
+## License
+
+`baggage-filter` is released under version 2.0 of the Apache License.
